@@ -1,0 +1,84 @@
+{% load static %} 
+{% if tasks %}
+<ul>
+  {% for task in tasks %}
+  <li class="task">
+    <div class="task_flex">
+      <div>
+        <div class="buttons right">
+          <img
+            class="unchecked"
+            src="{% static 'assets/Radio-button-unchecked.png' %}"
+            alt=""
+            hx-post="{% url 'add_to_completed' task.id %}"
+            hx-target="#lists"
+            hx-trigger="click"
+          />
+          <img
+            class="checked none"
+            src="{% static 'assets/Check-circle-outline.svg' %}"
+            alt=""
+          />
+        </div>
+        <div class="obj">{{task}}</div>
+      </div>
+      <img
+        class="delete"
+        src="{% static 'assets/Delete-outline.svg' %}"
+        alt=""
+        hx-trigger="click"
+        hx-delete="{% url 'delete_task' task.id %}"
+        hx-target="#lists"
+      />
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<h1>You don't have any active task.</h1>
+{% endif %} 
+{% if complete %}
+<ul>
+  {% for comp in complete %}
+  <li class="task">
+    <div class="task_flex">
+      <div>
+        <div class="buttons right">
+          <img
+            class="unchecked none"
+            src="{% static 'assets/Radio-button-unchecked.png' %}"
+            alt=""
+          />
+          <img
+            class="checked"
+            src="{% static 'assets/Check-circle-outline.svg' %}"
+            alt=""
+            hx-post="{% url 'add_to_tasks' comp.id %}"
+            hx-target="#lists"
+            hx-trigger="click"
+          />
+        </div>
+        <div class="obj strikeThrough">{{comp}}</div>
+      </div>
+      <img
+        class="delete"
+        src="{% static 'assets/Delete-outline.svg' %}"
+        alt=""
+        hx-trigger="click"
+        hx-delete="{% url 'delete_completed' comp.id %}"
+        hx-target="#lists"
+      />
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+<div
+  class="clear"
+  hx-trigger="click"
+  hx-post="{% url 'delete_all_completed' %}"
+  hx-target="#lists"
+>
+  <img src="{% static 'assets/Vector.svg' %}" alt="" />
+  <p>Clear Completed</p>
+</div>
+{% endif %}

@@ -1,60 +1,70 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
 from .form import Task_list
 from .models import Tasks, CompletedTask
 from django.urls import reverse
 
 
-# Create your views here.
+def get_context():
+    tasks = Tasks.objects.all()
+    completed_tasks = CompletedTask.objects.all()
+    context = {
+        "complete": completed_tasks,
+        "tasks": tasks,
+    }
+    return context
+    
 def view_todo(request):
     task = Task_list()
-    completed_tasks = CompletedTask.objects.all()
     tasks = Tasks.objects.all()
-    name = request.GET.get("name")
-    completed_task = request.GET.get("complete")
-    remove = request.GET.get("remove")
-    clear_all = request.GET.get("clear")
-    original = request.GET.get("original")
-    edited = request.GET.get("edited")
-
-    if name:
-        task_to_del = Tasks.objects.filter(task=name).first()
-        remove_permanent = CompletedTask.objects.filter(completed_task=name).first()
-        if task_to_del:
-            task_to_del.delete()
-        else:
-            remove_permanent.delete()
-        return HttpResponseRedirect(reverse(view_todo))
-    if completed_task:
-        task_to_add = Tasks.objects.filter(task=completed_task).first()
-        completed = CompletedTask(completed_task=task_to_add)
-        completed.save()
-        task_to_add.delete()
-        return HttpResponseRedirect(reverse(view_todo))
-    if remove:
-        task_to_add = CompletedTask.objects.filter(completed_task=remove).first()
-        completed = Tasks(task=task_to_add)
-        completed.save()
-        task_to_add.delete()
-        return HttpResponseRedirect(reverse(view_todo))
-    if clear_all:
-        all_tasks = CompletedTask.objects.all().delete()
-        return HttpResponseRedirect(reverse(view_todo))
-    if original and edited:
-        original_task = Tasks.objects.get(task=original)
-        original_task.task = edited
-        original_task.save()
-        return HttpResponseRedirect(reverse(view_todo))
+    completed_tasks = CompletedTask.objects.all()
     context = {
         "task": task,
         "tasks": tasks,
         "complete": completed_tasks,
     }
-    if request.method == "POST":
-        task = Task_list(request.POST)
-        if task.is_valid():
-            task.save()
-        return HttpResponseRedirect(reverse(view_todo))
-    else:
+    return render(request, "to-do/base.html", context)
 
-        return render(request, "todo.html", context)
+
+@require_POST
+def add_task(request):
+    task = Task_list(request.POST)
+    if task.is_valid():
+        task = task.save()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)
+
+
+def delete_task(request, id):
+    task = get_object_or_404(Tasks, id=id)
+    task.delete()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)
+
+
+def add_to_completed(request, id):
+    task = get_object_or_404(Tasks, id=id)
+    CompletedTask.objects.create(completed_task=task)
+    task.delete()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)
+
+
+def add_to_tasks(request, id):
+    comp_task = get_object_or_404(CompletedTask, id=id)
+    Tasks.objects.create(task=comp_task)
+    comp_task.delete()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)
+
+
+def delete_completed(request, id):
+    task = get_object_or_404(CompletedTask, id=id)
+    task.delete()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)
+
+def delete_all_completed(request):
+    CompletedTask.objects.all().delete()
+    context = get_context()
+    return render(request, "to-do/components/tasks_list.html", context)

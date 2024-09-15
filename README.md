@@ -15,6 +15,11 @@ With this Todo App, users can:
 - **Delete** tasks
 - **Clear** all completed tasks
 
+## Version 2.0 Highlights
+
+- **HTMX Integration**: The app now uses [HTMX](https://htmx.org/) to provide a more dynamic user experience with seamless updates and interactions without full-page reloads.
+- **Dynamic Task Management**: Tasks and completed tasks are updated dynamically, improving responsiveness and user interaction.
+
 Data persistence is achieved through Django models, which store task information in a SQLite database.
 
 ## Getting Started
